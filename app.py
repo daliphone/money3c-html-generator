@@ -37,7 +37,7 @@ if st.button("🚀 產生 HTML 原始碼與預覽", type="primary"):
 
     # 產生目錄 HTML (套用 font_size 變數)
     toc_html = f'<p><span style="font-size:{font_size}px">{intro_text}</span></p>\n<p>&nbsp;</p>\n'
-    toc_html += f'<{table_attr}>\n\t<tbody>\n\t\t<tr>\n\t\t\t<td>\n\t\t\t<p style="margin-bottom: {spacing}px;"><span style="font-size:{font_size}px">目錄：</span></p>\n\t\t\t</td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>\n'
+    toc_html += f'<table {table_attr}>\n\t<tbody>\n\t\t<tr>\n\t\t\t<td>\n\t\t\t<p style="margin-bottom: {spacing}px;"><span style="font-size:{font_size}px">目錄：</span></p>\n\t\t\t</td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>\n'
     
     content_html = ""
     counter = 1
