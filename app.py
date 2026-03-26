@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="文章目錄 HTML 產生器", layout="wide")
 
-st.title("📑 官網文章目錄 HTML 產生器 (防遮擋升級版)")
+st.title("📑 官網文章目錄 HTML 產生器 (經典防遮擋版)")
 st.write("輸入前言與大綱，一鍵產出帶有錨點 (Anchor) 的目錄與內文原始碼！")
 
 # --- 輸入區塊 ---
@@ -17,8 +17,8 @@ with col_style1:
 
 with col_style2:
     spacing = st.slider("↕️ 目錄行距大小 (px)", min_value=0, max_value=30, value=8)
-    # 【新增功能】導覽列防遮擋高度滑桿 (預設抓 80px)
-    scroll_offset = st.slider("🛡️ 導覽列防遮擋高度 (px)", min_value=0, max_value=150, value=80, help="如果點擊目錄跳轉後，標題被網頁上方的固定選單蓋住，請調大這個數值。")
+    # 預設值調高到 120，應付雙層選單
+    scroll_offset = st.slider("🛡️ 導覽列防遮擋高度 (px)", min_value=0, max_value=200, value=120, help="利用經典的 padding/margin 技巧，避免被上方選單遮擋。")
 
 st.info("💡 提示：每行輸入一個標題。如果是「小標題」，請在該行開頭加上一個減號 `-` (例如：`- 手機險推薦品牌 1：馬尼通訊`)。")
 outline_text = st.text_area(
@@ -36,12 +36,14 @@ if st.button("🚀 產生 HTML 原始碼與預覽", type="primary"):
     else:
         table_attr = 'style="width: 100%;" border="0" cellspacing="0" cellpadding="0"'
 
-    # 產生目錄 HTML (開頭補上正確的 table 標籤)
     toc_html = f'<p><span style="font-size:{font_size}px">{intro_text}</span></p>\n<p>&nbsp;</p>\n'
     toc_html += f'<table {table_attr}>\n\t<tbody>\n\t\t<tr>\n\t\t\t<td>\n\t\t\t<p style="margin-bottom: {spacing}px;"><span style="font-size:{font_size}px">目錄：</span></p>\n\t\t\t</td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>\n'
     
     content_html = ""
     counter = 1
+
+    # 【關鍵修改】改用最防呆的 padding-top 與 margin-top 組合技
+    css_hack = f'padding-top: {scroll_offset}px; margin-top: -{scroll_offset}px;'
 
     for line in lines:
         line = line.strip()
@@ -53,13 +55,11 @@ if st.button("🚀 產生 HTML 原始碼與預覽", type="primary"):
         if line.startswith('-'):
             title = line[1:].strip()
             toc_html += f'\t\t\t<p style="margin-bottom: {spacing}px;"><span style="font-size:{font_size}px">&nbsp;&nbsp;&nbsp;&nbsp;<a href="#{anchor_id}">{title}</a></span></p>\n'
-            # 【關鍵修改】在 <h3> 標籤內加入 scroll-margin-top 語法
-            content_html += f'<p>&nbsp;</p>\n<h3 id="{anchor_id}" style="scroll-margin-top: {scroll_offset}px;"><strong>{title}</strong></h3>\n<p>（請在此輸入【{title}】的內文...）</p>\n'
+            content_html += f'<p>&nbsp;</p>\n<h3 id="{anchor_id}" style="{css_hack}"><strong>{title}</strong></h3>\n<p>（請在此輸入【{title}】的內文...）</p>\n'
         else:
             title = line
             toc_html += f'\t\t\t<p style="margin-bottom: {spacing}px;"><span style="font-size:{font_size}px"><a href="#{anchor_id}">{title}</a></span></p>\n'
-            # 【關鍵修改】在 <h2> 標籤內加入 scroll-margin-top 語法
-            content_html += f'<p>&nbsp;</p>\n<h2 id="{anchor_id}" style="scroll-margin-top: {scroll_offset}px;"><strong>{title}</strong></h2>\n<p>（請在此輸入【{title}】的內文...）</p>\n'
+            content_html += f'<p>&nbsp;</p>\n<h2 id="{anchor_id}" style="{css_hack}"><strong>{title}</strong></h2>\n<p>（請在此輸入【{title}】的內文...）</p>\n'
 
         counter += 1
 
@@ -67,22 +67,18 @@ if st.button("🚀 產生 HTML 原始碼與預覽", type="primary"):
 
     st.divider()
 
-    # --- 預覽與輸出畫面 ---
     col1, col2 = st.columns(2)
 
     with col1:
         st.subheader("👀 實際預覽效果")
         st.info("💡 這是模擬在網頁上顯示的視覺效果。")
         full_preview_html = toc_html + content_html
-        
         st.markdown(f'<div style="border: 1px solid #ddd; padding: 20px; border-radius: 5px; background-color: #fafafa; color: #333;">{full_preview_html}</div>', unsafe_allow_html=True)
 
     with col2:
         st.subheader("✅ HTML 原始碼")
         st.success("🎉 產生成功！請點擊右上角複製圖示，貼上至官網編輯器中。")
-        
         st.markdown("**1️⃣ 目錄區塊 (放在文章最上方)**")
         st.code(toc_html, language='html')
-
         st.markdown("**2️⃣ 內文標題架構 (放在目錄下方)**")
         st.code(content_html, language='html')
