@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="文章目錄 HTML 產生器", layout="wide")
 
-st.title("📑 官網文章目錄 HTML 產生器")
+st.title("📑 官網文章目錄 HTML 產生器 (防遮擋升級版)")
 st.write("輸入前言與大綱，一鍵產出帶有錨點 (Anchor) 的目錄與內文原始碼！")
 
 # --- 輸入區塊 ---
@@ -13,11 +13,12 @@ col_style1, col_style2 = st.columns(2)
 
 with col_style1:
     has_border = st.checkbox("✅ 目錄需要外框線 (border)", value=True)
-    # 【新增功能】字體大小滑桿
     font_size = st.slider("🔠 目錄字體大小 (px)", min_value=12, max_value=24, value=14)
 
 with col_style2:
     spacing = st.slider("↕️ 目錄行距大小 (px)", min_value=0, max_value=30, value=8)
+    # 【新增功能】導覽列防遮擋高度滑桿 (預設抓 80px)
+    scroll_offset = st.slider("🛡️ 導覽列防遮擋高度 (px)", min_value=0, max_value=150, value=80, help="如果點擊目錄跳轉後，標題被網頁上方的固定選單蓋住，請調大這個數值。")
 
 st.info("💡 提示：每行輸入一個標題。如果是「小標題」，請在該行開頭加上一個減號 `-` (例如：`- 手機險推薦品牌 1：馬尼通訊`)。")
 outline_text = st.text_area(
@@ -35,7 +36,7 @@ if st.button("🚀 產生 HTML 原始碼與預覽", type="primary"):
     else:
         table_attr = 'style="width: 100%;" border="0" cellspacing="0" cellpadding="0"'
 
-    # 產生目錄 HTML (套用 font_size 變數)
+    # 產生目錄 HTML (開頭補上正確的 table 標籤)
     toc_html = f'<p><span style="font-size:{font_size}px">{intro_text}</span></p>\n<p>&nbsp;</p>\n'
     toc_html += f'<table {table_attr}>\n\t<tbody>\n\t\t<tr>\n\t\t\t<td>\n\t\t\t<p style="margin-bottom: {spacing}px;"><span style="font-size:{font_size}px">目錄：</span></p>\n\t\t\t</td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>\n'
     
@@ -51,14 +52,14 @@ if st.button("🚀 產生 HTML 原始碼與預覽", type="primary"):
 
         if line.startswith('-'):
             title = line[1:].strip()
-            # 【套用變數】font_size 與 spacing
             toc_html += f'\t\t\t<p style="margin-bottom: {spacing}px;"><span style="font-size:{font_size}px">&nbsp;&nbsp;&nbsp;&nbsp;<a href="#{anchor_id}">{title}</a></span></p>\n'
-            content_html += f'<p>&nbsp;</p>\n<h3 id="{anchor_id}"><strong>{title}</strong></h3>\n<p>（請在此輸入【{title}】的內文...）</p>\n'
+            # 【關鍵修改】在 <h3> 標籤內加入 scroll-margin-top 語法
+            content_html += f'<p>&nbsp;</p>\n<h3 id="{anchor_id}" style="scroll-margin-top: {scroll_offset}px;"><strong>{title}</strong></h3>\n<p>（請在此輸入【{title}】的內文...）</p>\n'
         else:
             title = line
-            # 【套用變數】font_size 與 spacing
             toc_html += f'\t\t\t<p style="margin-bottom: {spacing}px;"><span style="font-size:{font_size}px"><a href="#{anchor_id}">{title}</a></span></p>\n'
-            content_html += f'<p>&nbsp;</p>\n<h2 id="{anchor_id}"><strong>{title}</strong></h2>\n<p>（請在此輸入【{title}】的內文...）</p>\n'
+            # 【關鍵修改】在 <h2> 標籤內加入 scroll-margin-top 語法
+            content_html += f'<p>&nbsp;</p>\n<h2 id="{anchor_id}" style="scroll-margin-top: {scroll_offset}px;"><strong>{title}</strong></h2>\n<p>（請在此輸入【{title}】的內文...）</p>\n'
 
         counter += 1
 
